@@ -48,42 +48,87 @@
       </el-aside>
       <el-container>
         <!-- 顶部栏 -->
-        <el-header
-          ><el-row type="flex" class="row-bg" justify="space-between">
-            <el-col :span="6"
-              ><div class="grid-content bg-purple"></div
-            ></el-col>
-            <el-col :span="6"
-              ><div class="grid-content bg-purple-light">千锋管理系统</div
-            ></el-col>
-            <el-col :span="6"
-              ><div class="grid-content bg-purple">登录模块</div
-            ></el-col> </el-row
-        ></el-header>
+        <el-header>
+          <el-row type="flex" class="row-bg" justify="space-around">
+            <el-col :span="6">
+              <div class="grid-content bg-purple">图标</div>
+            </el-col>
+            <el-col :span="8">
+              <div class="grid-content bg-purple-light">千锋管理系统</div>
+            </el-col>
+            <el-col :span="7">
+              <div class="grid-content bg-purple">
+                 <el-avatar :size="40" src="https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=3584292853,440103369&fm=26&gp=0.jpg" 
+                 ></el-avatar>
+                 <span>欢迎您:</span>
+                 <b>{{userInfo.nickname}}</b>
+                 &nbsp;&nbsp;&nbsp;
+                 <span class="quit" @click="quit">退出</span>
+              </div>
+            </el-col>
+          </el-row>
+        </el-header>
         <!-- 主体区域 -->
         <el-main>Main</el-main>
       </el-container>
     </el-container>
   </div>
 </template>
-<script>
+<script scoped>
+import { getLoginLog } from "@/api";
+
+//渲染
+import {mapState} from "vuex"
+
 export default {
+  //渲染
+  computed: {
+    ...mapState(['userInfo'])
+  },
   data() {
     return {
       isCollapse: true
     };
   },
   methods: {
+    quit(){
+      //退出登入
+      //1、清除token和userInfo
+      //2、跳转到登录页
+      localStorage.removeItem('deng-token');
+      localStorage.removeItem('deng-userInfo')
+      this.$router.push("/login")   
+      },
+
     handleOpen(key, keyPath) {
       console.log(key, keyPath);
     },
     handleClose(key, keyPath) {
       console.log(key, keyPath);
     }
+  },
+  mounted() {
+    getLoginLog().then(res => {
+      console.log(res);
+    });
   }
 };
 </script>
-<style>
+
+<style scoped>
+/* 头像 */
+span.el-avatar.el-avatar--circle {
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+
+/* 退出按钮 */
+span.quit{
+color: rgb(252, 0, 168);
+}
+
+
 .el-menu-vertical-demo:not(.el-menu--collapse) {
   width: 200px;
   min-height: 400px;

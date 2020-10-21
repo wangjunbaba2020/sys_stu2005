@@ -9,6 +9,9 @@ html {
     /* width: 83%; */
 }
 
+
+/* 登入标题 */
+
 h1.title {
     color: white;
     font-size: 4em;
@@ -34,6 +37,9 @@ h1.title {
     background: rgba(0, 0, 0, 0.1);
 }
 
+
+/* 登入按钮 */
+
 .el-button {
     width: 249px;
     height: 40px;
@@ -42,6 +48,9 @@ h1.title {
     width: 100%;
     background: linear-gradient(90deg, #1596fb, #002dff);
 }
+
+
+/*整个登入框 */
 
 .login-page-left {
     padding: 60px 0 100px;

@@ -37,13 +37,14 @@ a {
     text-decoration: none
 }
 
-em,
+
+/* em,
 i,
 strong,
 b {
     font-style: normal;
     font-weight: 100;
-}
+} */
 
 li {
     list-style: none

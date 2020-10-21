@@ -49,6 +49,19 @@
 </template>
 
 <script>
+// 登入逻辑的实现:
+// 1、收集用户输入的username&password传递给后端-axios
+// 2、登入通过过后，将后端返回的token存到本地，跳转到主页
+// 3、每次请求的时候，携带token
+// 4、展示token校验正确的数据
+//5、校验不通过，跳转到登入页
+
+//登入导入
+import { login } from "@/api";
+
+// 映射--到methods去
+import {mapMutations} from "vuex"
+
 export default {
   data() {
     /**
@@ -91,12 +104,58 @@ export default {
     };
   },
   methods: {
+    ...mapMutations(['SET_USERINFO']),
+
+
     //处理函数vue2.0缺点代码不好找
     submitForm(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
           //本地校验通过
-          alert("submit!");
+          //打开登入加载动画
+          const loading = this.$loading({
+            lock: true,
+            text: "登录中...",
+            spinner: "el-icon-loading",
+            background: "rgba(0, 0, 0, 0.7)"
+          });
+
+
+          console.log(this.loginForm.username, this.loginForm.password);
+          //登录页发送请求
+          // login(this.loginForm.username,this.loginForm.password)
+          let { username, password } = this.loginForm;
+          login(username, password)
+            .then(res => {
+              //服务器响应，关闭loading动画
+              loading.close();
+
+              console.log(res);
+              if (res.data.state) {
+                //用户名密码正确时
+                this.$message({
+                  message: "叮叮叮~~~ 登录成功",
+                  type: "success"
+                });
+                // this.$message.success("叮叮叮~~~ 登录成功");
+                localStorage.setItem("deng-token", res.data.token); //以键值对存入本地
+                localStorage.setItem('deng-userInfo',JSON.stringify(res.data.userInfo))
+
+                //更改vuex中state['userInfo']的值--要调用方法了--先映射
+                this.SET_USERINFO(res.data.userInfo)
+                
+                //跳转到主页
+                this.$router.push("/");
+              } else {
+                //用户名密码错误
+                // alert("用户名密码错误");
+                this.$message.error("用户名或密码错误");
+              }
+            })
+            .catch(err => {
+              //代表请求出错--可以不用走catch--有专门的响应拦截器去拦截--即统一的catch由我们响应拦截器去写。
+              console.log(err);
+            });
         } else {
           console.log("error submit!!");
           return false;
