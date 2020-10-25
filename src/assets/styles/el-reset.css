@@ -2,11 +2,8 @@ html {
     overflow: hidden;
 }
 
-
-/* 表单输入框样式 */
-
-.login-page .el-input__inner span {
-    /* width: 83%; */
+.el-input__inner {
+    /* background: rgba(0, 0, 0, 0.1); */
 }
 
 
@@ -53,9 +50,9 @@ h1.title {
 /*整个登入框 */
 
 .login-page-left {
-    padding: 60px 0 100px;
+    padding: 58px 0 165px;
     text-align: center;
-    width: 500px;
+    width: 473px;
     height: 300px;
     background-color: rgba(0, 0, 0, 0.2);
     z-index: 10;
@@ -64,4 +61,20 @@ h1.title {
     left: 65%;
     transform: translate(-50%, -50%);
     border-radius: 11px;
+}
+
+
+/* 表单输入框样式 */
+
+.login-page .el-input__inner,
+.el-button--primary {
+    width: 83%;
+    color: white;
+}
+
+
+/* 进度条样式 */
+
+#nprogress .bar {
+    background-color: red !important;
 }

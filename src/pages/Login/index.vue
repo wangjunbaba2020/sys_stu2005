@@ -4,7 +4,6 @@
       <h1 class="title">一个管理系统</h1>
       <el-form
         :model="loginForm"
-        status-icon
         :rules="rules"
         ref="loginForm"
         label-width="100px"
@@ -24,7 +23,27 @@
             type="password"
             v-model="loginForm.password"
             autocomplete="off"
+            @keyup.enter.native="submitForm('loginForm')"
           ></el-input>
+        </el-form-item>
+
+        <!-- 验证码 -->
+        <el-form-item label="验证码" prop="captcha">
+          <el-input
+            class="captcha"
+            type="text"
+            v-model="loginForm.captcha"
+            autocomplete="off"
+             @keyup.enter.native="submitForm('loginForm')"
+          ></el-input>
+          <span
+            class="captcha"
+            v-html="captchaSvg"
+            @click="refreshCaptcha"
+            style="
+    cursor: pointer;"
+            >1234</span
+          >
         </el-form-item>
 
         <el-form-item>
@@ -57,10 +76,10 @@
 //5、校验不通过，跳转到登入页
 
 //登入导入
-import { login } from "@/api";
+import { login, getCaptcha, verifyCaptcha } from "@/api";
 
 // 映射--到methods去
-import {mapMutations} from "vuex"
+import { mapMutations } from "vuex";
 
 export default {
   data() {
@@ -85,6 +104,7 @@ export default {
         callback();
       }
     };
+    //校验用户密码
     var validatePassword = (rule, value, callback) => {
       if (value === "") {
         callback(new Error("请输入密码"));
@@ -92,26 +112,64 @@ export default {
         callback();
       }
     };
+    // 校验验证码
+    var validateCaptcha = (rule, value, callback) => {
+      if (value === "" || value.length !== 5) {
+        callback(new Error("请输入验证码"));
+      } else {
+        callback();
+      }
+    };
     return {
+      captchaSvg: "", //从服务器获取下来的验证码svg结构
       loginForm: {
         username: "",
-        password: ""
+        password: "",
+        captcha: ""
       },
       rules: {
         username: [{ validator: validateUsername, trigger: "blur" }],
-        password: [{ validator: validatePassword, trigger: "blur" }]
+        password: [{ validator: validatePassword, trigger: "blur" }],
+        captcha: [{ validator: validateCaptcha, trigger: "blur" }]
       }
     };
   },
+  mounted() {
+    this.set_captcha();
+  },
   methods: {
-    ...mapMutations(['SET_USERINFO']),
+    ...mapMutations(["SET_USERINFO"]),
 
+    //刷新验证码
+    refreshCaptcha() {
+      this.set_captcha();
+    },
+    //设置验证码
+    set_captcha() {
+      getCaptcha().then(res => {
+        // console.log(res);
+
+        this.captchaSvg = res.data.img;
+      });
+    },
 
     //处理函数vue2.0缺点代码不好找
     submitForm(formName) {
-      this.$refs[formName].validate(valid => {
+      this.$refs[formName].validate(async valid => {
         if (valid) {
           //本地校验通过
+
+          //先验证验证码是否正确如果正确再发送登入请求
+          let verifyRes = await verifyCaptcha(this.loginForm.captcha);
+          console.log(verifyRes);
+          // return;
+          // console.log(verifyRes.data)
+          if(!verifyRes.data.state){
+            //验证码不正确
+            this.$message.error('验证码输入错误，请重新输入')
+            return
+          }
+
           //打开登入加载动画
           const loading = this.$loading({
             lock: true,
@@ -120,8 +178,7 @@ export default {
             background: "rgba(0, 0, 0, 0.7)"
           });
 
-
-          console.log(this.loginForm.username, this.loginForm.password);
+          // console.log(this.loginForm.username, this.loginForm.password);
           //登录页发送请求
           // login(this.loginForm.username,this.loginForm.password)
           let { username, password } = this.loginForm;
@@ -130,7 +187,7 @@ export default {
               //服务器响应，关闭loading动画
               loading.close();
 
-              console.log(res);
+              // console.log(res);
               if (res.data.state) {
                 //用户名密码正确时
                 this.$message({
@@ -139,13 +196,16 @@ export default {
                 });
                 // this.$message.success("叮叮叮~~~ 登录成功");
                 localStorage.setItem("deng-token", res.data.token); //以键值对存入本地
-                localStorage.setItem('deng-userInfo',JSON.stringify(res.data.userInfo))
+                localStorage.setItem(
+                  "deng-userInfo",
+                  JSON.stringify(res.data.userInfo)
+                );
 
                 //更改vuex中state['userInfo']的值--要调用方法了--先映射
-                this.SET_USERINFO(res.data.userInfo)
-                
+                this.SET_USERINFO(res.data.userInfo);
+
                 //跳转到主页
-                this.$router.push("/");
+                this.$router.push("/Welcome");
               } else {
                 //用户名密码错误
                 // alert("用户名密码错误");
@@ -172,5 +232,17 @@ export default {
 /* 表单样式 */
 .el-form {
   width: 400px;
+}
+
+element.style {
+  width: 83px !important;
+}
+
+/* 验证码 */
+.captcha {
+  width: 40%;
+  float: left;
+  /* padding-left: 18px; */
+  margin-left: 15px;
 }
 </style>
